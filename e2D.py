@@ -49,7 +49,12 @@ class Vector2D:
     def copy(self):
         return Vector2D(self.x, self.y)
 
-    def randomize(self, start, end):
+    def absolute_round(self, n=1):
+        return V2(self.x / self.abs().x if self.x != 0 else 0, self.y / self.abs().y if self.y != 0 else 0) * n
+
+    def randomize(start=None, end=None):
+        if start == None: start = Vector2D(0,0)
+        if end == None: end = Vector2D(1,1)
         return start + V2(_np.random.random(),_np.random.random()) *(end - start)
 
     def mid_point_to(self, *objects):
@@ -139,18 +144,24 @@ def color_fade(starting_c, final_c, index, max_index):
 def avg_position(*objects):
     return sum(list(objects)) / (len(objects))
 
-def get_lines(position, size, rotation=0, pos_in_middle=True):
+def get_points(position, size, rotation=0, pos_in_middle=True, return_list=False, clockwise_return=False):
     if pos_in_middle:
         A,B,C,D = [ position.point_from_degs(rotation + V2z.angle_to(size/-2),                 V2z.distance_to(size/-2)),
                     position.point_from_degs(rotation + V2z.angle_to(V2(size.x, -1*size.y)/2), V2z.distance_to(V2(size.x, -1*size.y)/2)),
                     position.point_from_degs(rotation + V2z.angle_to(V2(-1*size.x, size.y)/2), V2z.distance_to(V2(-1*size.x, size.y)/2)),
                     position.point_from_degs(rotation + V2z.angle_to(size/2),                  V2z.distance_to(size/2)) ]
     else:
-        A,B,C,D = [ position,
+        A,B,C,D = [ position.copy(),
                     position.point_from_degs(rotation + V2z.angle_to(V2(size.x, 0)), V2z.distance_to(V2(size.x, 0))),
                     position.point_from_degs(rotation + V2z.angle_to(V2(0, size.y)), V2z.distance_to(V2(0, size.y))),
                     position.point_from_degs(rotation + V2z.angle_to(size),          V2z.distance_to(size)) ]
+    points = (A,B,C,D) if not clockwise_return else (A,B,D,C)
+    return points if not return_list else [x() for x in points]
+
+def get_lines(position, size, rotation=0, pos_in_middle=True):
+    A,B,C,D = get_points(position, size, rotation, pos_in_middle)
     return [[A,B], [A,C], [C,D], [D,B]]
+
 
 """
 import keyboard as key

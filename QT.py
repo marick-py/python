@@ -53,7 +53,10 @@ class QT:
             else:
                 self.qt[new_obs] = {action:_np.random.uniform(self.start_dec[0], self.start_dec[1]) for _ in range(self.actions_space) for action in doable_actions}
 
-        max_fq = max(list(self.qt[new_obs].values()))
+        if self.is_complex:
+            max_fq = max(list(self.qt[new_obs].values()))
+        else:
+            max_fq = max(self.qt[new_obs])
         curr_q = self.qt[obs][action]
         
         new_q = ( 1 - self.learningR ) * curr_q + self.learningR * ( reward + self.discount * max_fq )
@@ -118,7 +121,7 @@ class Env:
         if learn_mode != "l":
             self.screen = pg.display.set_mode(self.screen_size(), vsync=1)
             self.clock = pg.time.Clock()
-        self.frame = 0
+        self.cframe = 0
     
     def clear(self):
         self.screen.fill((0,0,0))
@@ -149,14 +152,14 @@ class Env:
         if learn_mode != "l": self.draw()
         death = False
         state_id = self.get_state_id()
-        self.frame += 1
-        if self.frame > max_frames:
+        self.cframe += 1
+        if self.cframe > max_frames:
             death = True
         if death:
             qt.qt["gen"] += 1
         return state_id, reward, death
 
-qt = QT(len(commands), folder if open_file else None)
+qt = QT(len(commands), folder if open_file else None, epsilon=.3 if learn_mode == "l" else 0, epsilon_dec=0.999998)
 
 env = Env()
 
