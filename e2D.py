@@ -26,10 +26,10 @@ class Vector2D:
         return (d**(1/2) if squared else d)
     
     def angle_to(self, object):
-        return divmod(_np.arctan2(object.y - self.y, object.x - self.x) * 180 / _np.pi, 360)[1]
+        return _np.arctan2(object.y - self.y, object.x - self.x) * 180 / 3.141592653589793
     
     def point_from_degs(self, degs, radius):
-        rad = _np.deg2rad(divmod(degs, 360)[1])
+        rad =  degs / 180 * 3.141592653589793
         x = radius * _np.cos(rad) + self.x
         y = radius * _np.sin(rad) + self.y
         return Vector2D(x,y)
@@ -75,6 +75,15 @@ class Vector2D:
     
     def normalize(self, max=1, min=0):
         return V2(min, min).point_from_degs(V2(min, min).angle_to(self), max) if V2(min, min).distance_to(self) != 0 else V2z.copy()
+
+    def no_zero_div_error(self, n, mode="zero"):
+        if type(n) in (int, float):
+            if n == 0:
+                return Vector2D(0 if mode == "zero" else (self.x if mode == "null" else _np.nan), 0 if mode == "zero" else (self.y if mode == "null" else _np.nan))
+            else:
+                return self / n
+        else:
+            return Vector2D((0 if mode == "zero" else (self.x if mode == "null" else _np.nan)) if n.x == 0 else self.x / n.x, (0 if mode == "zero" else (self.y if mode == "null" else _np.nan)) if n.y == 0 else self.y / n.y)
 
     def __get_info(self, info):
         if isinstance(info, Vector2D):
@@ -176,6 +185,10 @@ seed = rnd.random()
 rnd.seed(seed)
 
 pg.init()
+pg.font.init()
+LucidaConsole16 = pg.font.SysFont('lucidaconsole', 16)
+LucidaConsole32 = pg.font.SysFont('lucidaconsole', 32)
+LucidaConsole64 = pg.font.SysFont('lucidaconsole', 64)
 
 class Env:
     def __init__(self) -> None:
@@ -187,9 +200,21 @@ class Env:
     def clear(self):
         self.screen.fill((0,0,0))
     
+    def print_fps_info(self):
+        curr_fps = self.clock.get_fps()
+        fps_surface = LucidaConsole16.render(f"fps: {str(curr_fps)}", False, (150, 150, 150))
+        self.screen.blit(fps_surface, (self.screen_size / 100)())
+        if curr_fps != 0:
+            self.delta = 1 / self.clock.get_fps()
+            fps_surface = LucidaConsole16.render(f"len: {str(self.delta)}", False, (150, 150, 150))
+            self.screen.blit(fps_surface, (self.screen_size / 100 + V2(0, self.screen_size.y / 100 + 10))())
+        else:
+            self.delta = 0
+
     def draw(self):
         self.clock.tick(0)
         self.clear()
+        self.print_fps_info()
 
         pg.display.update()
     
