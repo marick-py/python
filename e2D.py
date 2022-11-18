@@ -72,7 +72,7 @@ class Vector2D:
         return sum(list(objects) + [self]) / (len(objects)+1)
 
     # V2(x,y) | [(V2(x1,y1), V2(x2,y2)), (V2(x3,y3), V2(x4,y4))]
-    def inter_points(self, self_final_point, lines:list[tuple], sort:bool=False):
+    def inter_points(self, self_final_point, lines:list[tuple], sort:bool=False, return_empty:bool=False):
         ray = self() + self_final_point()
         def lineLineIntersect(P0, P1, Q0, Q1):
             d = (P1[0]-P0[0]) * (Q1[1]-Q0[1]) + (P1[1]-P0[1]) * (Q0[0]-Q1[0])
@@ -85,8 +85,7 @@ class Vector2D:
             if 0 <= t <= 1 and 0 <= u <= 1:
                 return round(P1[0] * t + P0[0] * (1-t)), round(P1[1] * t + P0[1] * (1-t))
             return None
-        collisions = [V2(info=line) for line in [lineLineIntersect(
-            line1[1](), line1[0](), ray[:2], ray[2:]) for line1 in lines] if line]
+        collisions = [V2(info=line) for line in [lineLineIntersect(line1[1](), line1[0](), ray[:2], ray[2:]) for line1 in lines] if line]
         if sort:
             collisions.sort(key=lambda x: self.distance_to(x, False))
         return collisions
@@ -165,11 +164,11 @@ class Vector2D:
     def __ceil__(self, n:Union[int,float]=1):
         return (Vector2D(_np.ceil(self.x / n) * n, _np.ceil(self.y / n) * n)) if self.use_numpy_as_default_env_option else (Vector2D(_mt.ceil(self.x / n) * n, _mt.ceil(self.y / n) * n))
 
-    def __mul__(self, n):
+    def __mul__(self, object):
         if not isinstance(object, Vector2D): object = Vector2D(info=object)
         return Vector2D(self.x * object.x, self.y * object.y)
 
-    def __pow__(self, n):
+    def __pow__(self, object):
         if not isinstance(object, Vector2D): object = Vector2D(info=object)
         return Vector2D(self.x ** object.x, self.y ** object.y)
     
@@ -212,3 +211,45 @@ def get_points(position:Vector2D, size:Vector2D, rotation:Union[int,float]=0, po
 def get_lines(position:Vector2D, size:Vector2D, rotation:Union[int,float]=0, pos_in_middle:bool=True) -> list[list, list, list, list]:
     A, B, C, D = get_points(position, size, rotation, pos_in_middle)
     return [[A, B], [A, C], [C, D], [D, B]]
+
+"""
+import random as rnd
+import numpy as np
+from e2D import *
+
+import pygame as pg
+
+seed = rnd.random()
+rnd.seed(seed)
+
+pg.init()
+
+class Env:
+    def __init__(self) -> None:
+        self.quit = False
+        self.screen_size = V2(1920, 1080)
+        self.screen = pg.display.set_mode(self.screen_size(), vsync=1)
+        self.clock = pg.time.Clock()
+    
+    def clear(self):
+        self.screen.fill((0,0,0))
+    
+    def draw(self):
+        self.clock.tick(0)
+        self.clear()
+
+        pg.display.update()
+    
+    def frame(self):
+        self.draw()
+
+        for event in pg.event.get():
+            if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_x):
+                self.quit = True
+            if event.
+
+env = Env()
+
+while not env.quit:
+    env.frame()
+"""
