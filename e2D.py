@@ -83,9 +83,9 @@ class Vector2D:
             u = ((Q0[0]-P0[0]) * (P1[1]-P0[1]) +
                  (Q0[1]-P0[1]) * (P0[0]-P1[0])) / d
             if 0 <= t <= 1 and 0 <= u <= 1:
-                return round(P1[0] * t + P0[0] * (1-t)), round(P1[1] * t + P0[1] * (1-t))
+                return P1[0] * t + P0[0] * (1-t), P1[1] * t + P0[1] * (1-t)
             return None
-        collisions = [V2(info=line) for line in [lineLineIntersect(line1[1](), line1[0](), ray[:2], ray[2:]) for line1 in lines] if line or not return_empty]
+        collisions = [V2(info=line) if line else None for line in [lineLineIntersect(line1[1](), line1[0](), ray[:2], ray[2:]) for line1 in lines] if line or return_empty]
         if sort:
             collisions.sort(key=lambda x: self.distance_to(x, False))
         return collisions
